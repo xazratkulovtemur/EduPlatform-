@@ -45,7 +45,7 @@ def admin_menu(admin, data_manager):
                 full_name = input("Full name: ").strip()
                 email = input("Email: ").strip().lower()
                 password = input("Password: ")
-                created_at = input("Created at (ISO format or leave empty for now): ").strip() or datetime.now().isoformat()
+                created_at = input("Created at (Enter date in ISO format or press enter for today's date): ").strip() or datetime.now().isoformat()
 
                 if role == "admin":
                     from roles.admin import Admin
@@ -108,8 +108,18 @@ def teacher_menu(teacher, data_manager):
         
         if choice == "1":
             print("\nCreating assignment...")
-            # Implementation would go here
+            # Empty Now
             input("Press Enter to continue...")
+        elif choice=="2":
+            print("Grading assignment...")
+            #empty now
+            input("Press Enter to continue...")
+        
+        elif choice=="3":
+            print("View student progress...")
+            #empty now
+            input("Press Enter to continue...")
+
         
         elif choice == "4":
             break
@@ -123,7 +133,12 @@ def student_menu(student, data_manager):
         print("3. Logout")
 
         choice = input("\nSelect option: ").strip()
-        
+        if choice =="1":
+            pass
+            #empty
+        if choice =="2":
+            pass
+            #empty
         if choice == "3":
             break
 
@@ -137,6 +152,7 @@ def parent_menu(parent, data_manager):
         print("4. Logout")
 
         choice = input("\nSelect option: ").strip()
+        
         
         if choice == "4":
             break

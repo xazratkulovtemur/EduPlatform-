@@ -1,3 +1,4 @@
 id,full_name,email,password_hash,created_at,role,subjects,classes
 100,John Mathematics,john.math@edu.uz,63cb9c6fa2d65784658539a93ad47f2274a02ddff344537beb97bd399938ad22,2025-06-15,TEACHER,"[""Math"", ""Physics""]","[""9-A"", ""10-B""]"
 101,Sarah Literature,sarah.lit@edu.uz,592676c57ffd593df5fc737f9038a9ce34aed208bcc2d78a24add6c7c0e5f2b6,2025-06-15,TEACHER,"[""Literature"", ""History""]","[""9-B"", ""11-A""]"
+102,Temurbek,temurbek@edu.uz,1fa23f98dce5cb9bba2ad5b766e9f0d33742bae4943895747150ca15cdd46b6d,"""2024-05-26""",TEACHER,[],[]
