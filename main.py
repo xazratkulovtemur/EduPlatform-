@@ -1,133 +1,172 @@
-# main.py
 from data.data_manager import DataManager
-from roles.student import Student
-from roles.teacher import Teacher
-from roles.parent import Parent
-from roles.admin import Admin
+import hashlib
+import os
+from core.user import Role
 from datetime import datetime
 
-def create_default_admin(dm):
-    if not dm.get_user_by_email("admin@edu.uz"):
-        admin = Admin(1, "Super Admin", "admin@edu.uz", "adminpass")
-        dm.add_user(admin)
-        print("✅ Default admin created.")
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-def login(dm):
-    email = input("Email: ")
-    password = input("Password: ")
-    user = dm.get_user_by_email(email)
-    if user and user._password_hash == user.hash_password(password):
+def login(data_manager):
+    
+    print("\nLogin to EduPlatform")
+    email = input("Email: ").strip()
+    password = input("Password: ").strip()
+
+    user = data_manager.authenticate_user(email, password)
+    
+    if user:
+        
+        print(f"\nWelcome, {user._full_name} ({user.role.name})!")
         return user
-    print("❌ Login failed.")
+    
+    print("\nLogin failed. Invalid email or password.")
+    input("Press Enter to continue...")
     return None
 
-def admin_panel(dm, admin):
+def admin_menu(admin, data_manager):
     while True:
-        print("\n[ Admin Panel ]")
-        print("1. Add Student\n2. Add Teacher\n3. Add Parent\n4. Logout")
-        choice = input("Select: ")
-        if choice == '4':
+        
+        print(f"\nAdmin Panel: {admin._full_name}")
+        print("1. Add user")
+        print("2. Remove user")
+        print("3. View all users")
+        print("4. Logout")
+
+        choice = input("\nSelect option: ").strip()
+        
+        if choice == "1":
+            
+            print("\nAdd New User")
+            role = input("Role (admin/teacher/student/parent): ").lower().strip()
+            
+            try:
+                _id = int(input("ID: "))
+                full_name = input("Full name: ").strip()
+                email = input("Email: ").strip().lower()
+                password = input("Password: ")
+                created_at = input("Created at (ISO format or leave empty for now): ").strip() or datetime.now().isoformat()
+
+                if role == "admin":
+                    from roles.admin import Admin
+                    user = Admin(_id, full_name, email, password, created_at)
+                elif role == "teacher":
+                    from roles.teacher import Teacher
+                    user = Teacher(_id, full_name, email, password, created_at)
+                elif role == "student":
+                    from roles.student import Student
+                    grade = input("Grade (e.g., 9-A): ").strip()
+                    user = Student(_id, full_name, email, password, created_at, grade)
+                elif role == "parent":
+                    from roles.parent import Parent
+                    user = Parent(_id, full_name, email, password, created_at)
+                else:
+                    print("Invalid role.")
+                    input("Press Enter to continue...")
+                    continue
+
+                if data_manager.add_user(admin._id, user):
+                    data_manager.save_all()
+                
+            except ValueError:
+                print("Invalid ID. Must be a number.")
+            
+            input("Press Enter to continue...")
+
+        elif choice == "2":
+            
+            print("\nRemove User")
+            try:
+                user_id = int(input("Enter user ID to remove: "))
+                if data_manager.remove_user(admin._id, user_id):
+                    data_manager.save_all()
+            except ValueError:
+                print("Invalid ID. Must be a number.")
+            input("Press Enter to continue...")
+
+        elif choice == "3":
+            
+            print("\nAll Users")
+            all_users = data_manager.get_all_users()
+            for user in all_users:
+                print(f"ID: {user._id}, Name: {user._full_name}, Role: {user.role.name}, Email: {user._email}")
+            input("\nPress Enter to continue...")
+
+        elif choice == "4":
             break
 
-        _id = len(dm.users) + 1
-        name = input("Full name: ")
-        email = input("Email: ")
-        password = input("Password: ")
-
-        if choice == '1':
-            grade = input("Class: ")
-            student = Student(_id, name, email, password, grade)
-            dm.add_user(student)
-            print("✅ Student added.")
-        elif choice == '2':
-            teacher = Teacher(_id, name, email, password)
-            dm.add_user(teacher)
-            print("✅ Teacher added.")
-        elif choice == '3':
-            parent = Parent(_id, name, email, password)
-            dm.add_user(parent)
-            print("✅ Parent added.")
-        else:
-            print("❌ Invalid choice.")
-
-def student_menu(student):
+def teacher_menu(teacher, data_manager):
     while True:
-        print("\n[ Student Panel ]")
-        print("1. View Grades\n2. Logout")
-        choice = input("Select: ")
-        if choice == '1':
-            print("📊 Your Grades:", student.view_grades())
-        elif choice == '2':
-            break
-        else:
-            print("❌ Invalid option.")
+        
+        print(f"\nTeacher Panel: {teacher._full_name}")
+        print("1. Create assignment")
+        print("2. Grade assignment")
+        print("3. View student progress")
+        print("4. Logout")
 
-def parent_menu(parent, dm):
+        choice = input("\nSelect option: ").strip()
+        
+        if choice == "1":
+            print("\nCreating assignment...")
+            # Implementation would go here
+            input("Press Enter to continue...")
+        
+        elif choice == "4":
+            break
+
+def student_menu(student, data_manager):
     while True:
-        print("\n[ Parent Panel ]")
-        print("1. View Child Grades\n2. Logout")
-        choice = input("Select: ")
-        if choice == '1':
-            for cid in parent.children:
-                child = dm.get_user_by_email(cid)
-                if child:
-                    print(f"\nGrades for {child._full_name}: {child.view_grades()}")
-        elif choice == '2':
-            break
-        else:
-            print("❌ Invalid option.")
+        
+        print(f"\nStudent Panel: {student._full_name}")
+        print("1. Submit assignment")
+        print("2. View grades")
+        print("3. Logout")
 
-def teacher_menu(teacher):
+        choice = input("\nSelect option: ").strip()
+        
+        if choice == "3":
+            break
+
+def parent_menu(parent, data_manager):
     while True:
-        print("\n[ Teacher Panel ]")
-        print("1. View Assigned Classes\n2. Logout")
-        choice = input("Select: ")
-        if choice == '1':
-            print("📚 Classes:", teacher.classes)
-        elif choice == '2':
+        
+        print(f"\nParent Panel: {parent._full_name}")
+        print("1. View child grades")
+        print("2. View child assignments")
+        print("3. View child notifications")
+        print("4. Logout")
+
+        choice = input("\nSelect option: ").strip()
+        
+        if choice == "4":
             break
-        else:
-            print("❌ Invalid option.")
-
-def main():
-    dm = DataManager()
-    from roles.student import Student
-    from roles.teacher import Teacher
-    from roles.parent import Parent
-    from roles.admin import Admin
-
-    role_map = {
-        'Student': Student,
-        'Teacher': Teacher,
-        'Parent': Parent,
-        'Admin': Admin
-    }
-
-    dm.load_users_from_csv(role_map)
-    create_default_admin(dm)
-
-    while True:
-        print("\n=== EduPlatform ===")
-        print("1. Login\n2. Exit")
-        option = input("Choose: ")
-
-        if option == '1':
-            user = login(dm)
-            if user:
-                print(f"\n✅ Welcome {user._full_name} ({user.role})")
-                if user.role == 'Admin':
-                    admin_panel(dm, user)
-                elif user.role == 'Student':
-                    student_menu(user)
-                elif user.role == 'Parent':
-                    parent_menu(user, dm)
-                elif user.role == 'Teacher':
-                    teacher_menu(user)
-        elif option == '2':
-            print("👋 Goodbye!")
-            break
-        else:
-            print("❌ Invalid input.")
 
 if __name__ == "__main__":
-    main()
+    dm = DataManager()
+    dm.load_all()
+
+    while True:
+        
+        print("\nEduPlatform Management System")
+        print("1. Login")
+        print("2. Exit")
+        
+        choice = input("\nSelect option: ").strip()
+        
+        if choice == "1":
+            user = login(dm)
+            if user:
+                if user.role == Role.ADMIN:
+                    admin_menu(user, dm)
+                elif user.role == Role.TEACHER:
+                    teacher_menu(user, dm)
+                elif user.role == Role.STUDENT:
+                    student_menu(user, dm)
+                elif user.role == Role.PARENT:
+                    parent_menu(user, dm)
+        
+        elif choice == "2":
+            print("\nSaving data...")
+            dm.save_all()
+            print("Exiting EduPlatform. Goodbye!")
+            break

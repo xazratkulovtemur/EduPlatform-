@@ -1,0 +1,2 @@
+id,full_name,email,password_hash,created_at,role,permissions
+0,Admin One,admin@edu.uz,8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918,2025-06-14,ADMIN,"[""add_user"", ""remove_user"", ""generate_report""]"
